@@ -6,10 +6,10 @@ COPY . .
 
 RUN mvn package -DskipTests
 
+# Based on https://github.com/tonda100/wildfly-postgresql
 FROM quay.io/wildfly/wildfly:26.1.2.Final-jdk17 as production
 
 ENV WILDFLY_HOME /opt/jboss/wildfly
-ENV DEPLOY_DIR ${WILDFLY_HOME}/standalone/deployments/
 
 ENV DATASOURCE_NAME ApplicationDS
 ENV DATASOURCE_JNDI java:/SymphonyDS
@@ -22,8 +22,8 @@ ENV DB_NAME symphony
 
 # create temporary deployment dir, because wars can deploy after the datasource is created
 USER jboss
-RUN mkdir /tmp/deploments
-ENV DEPLOY_DIR /tmp/deploments
+RUN mkdir /tmp/deployments
+ENV DEPLOY_DIR /tmp/deployments
 
 RUN mkdir /tmp/jboss-cli
 ENV CLI_DIR /tmp/jboss-cli
@@ -32,6 +32,7 @@ COPY startWithPostgres.sh $WILDFLY_HOME/bin
 
 USER root
 RUN chown jboss:jboss $WILDFLY_HOME/bin/startWithPostgres.sh
+# RUN chown -R jboss:jboss $CLI_DIR
 RUN chmod 755 $WILDFLY_HOME/bin/startWithPostgres.sh
 USER jboss
 

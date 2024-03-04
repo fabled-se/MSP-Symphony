@@ -1,9 +1,12 @@
 #!/bin/bash
 
-echo "=> Who Am I?"
-whoami
+set -e # Exit the script on error
 
-if [ ! -f wildfly.started ]; then
+if [[ -f wildfly/wildfly.started ]]; then
+    echo "=> Wildfly has already been started"
+    exit 1
+fi
+
 JBOSS_CLI=$WILDFLY_HOME/bin/jboss-cli.sh
 
 function wait_for_server() {
@@ -45,7 +48,7 @@ data-source add \
 run-batch
 EOF
 
-FILES=$CLI_DIR/*.cli
+FILES=$(find "$CLI_DIR" -iname '*.cli')
 for f in $FILES
 do
   echo "Processing $f file..."
@@ -58,8 +61,7 @@ $JBOSS_CLI -c ":shutdown"
 echo "=> DEPLOY WARs"
 cp ${DEPLOY_DIR}/* ${WILDFLY_HOME}/standalone/deployments/
 
-touch wildfly.started
-fi
+touch wildfly/wildfly.started
 
 echo "=> Start Wildfly"
 $WILDFLY_HOME/bin/standalone.sh -b=0.0.0.0 -c standalone.xml
